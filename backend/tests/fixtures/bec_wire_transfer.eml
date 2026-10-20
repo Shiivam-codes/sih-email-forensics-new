@@ -1,0 +1,32 @@
+Return-Path: <rajesh.kapoor@acme-corp.com>
+Authentication-Results: mx.recipient.org; spf=pass smtp.mailfrom=acme-corp.com; dkim=pass header.d=acme-corp.com; dmarc=pass header.from=acme-corp.com
+Received: from mx.acme-corp.com (mx.acme-corp.com [52.95.110.10]) by mail.recipient.org (Postfix) with ESMTPS id 4B7E2; Mon, 19 Oct 2026 18:02:20 +0000
+Received: from smtp.acme-corp.com (smtp.acme-corp.com [45.61.136.12]) by mx.acme-corp.com (Postfix) with ESMTPS id 2C9A4; Mon, 19 Oct 2026 18:02:14 +0000
+From: "Rajesh Kapoor" <rajesh.kapoor@acme-corp.com>
+Reply-To: "Rajesh Kapoor" <ceo.office@acme-finance.com>
+To: accounts@recipient.org
+Subject: Confidential - urgent wire transfer
+Date: Mon, 19 Oct 2026 18:02:11 +0000
+Message-ID: <20261019180211.2C9A4@acme-corp.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="b1"
+
+--b1
+Content-Type: text/plain; charset="utf-8"
+
+Accounts,
+
+Please process this wire transfer today. We are finalizing a confidential acquisition and the seller requires payment before 5 PM. Use the new bank details in the attached invoice. Do not call my office line; reply here if anything is missing.
+
+Regards,
+Rajesh Kapoor
+Chief Executive Officer
+
+--b1
+Content-Type: application/pdf; name="invoice_october.pdf"
+Content-Disposition: attachment; filename="invoice_october.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKJcTl8uXrp/Og0MTGCjQgMCBvYmoKPDwvVHlwZSAvUGFnZQo+PmVuZG9iagp0cmFpbGVyCjw8L1Jvb3QgMSAwIFI+PgolJUVPRgo=
+
+--b1--

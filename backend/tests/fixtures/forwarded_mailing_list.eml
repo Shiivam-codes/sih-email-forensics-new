@@ -1,0 +1,23 @@
+Return-Path: <bounce@lists.securityweek.org>
+Authentication-Results: mx.recipient.org; spf=fail smtp.mailfrom=lists.securityweek.org; dkim=pass header.d=newsletter.example.org; dmarc=pass header.from=newsletter.example.org
+Received: from mx.recipient.org (mx.recipient.org [64.233.160.5]) by inbox.recipient.org (Postfix) with ESMTP id 6A1B; Wed, 21 Oct 2026 08:00:07 +0000
+Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52]) by mx.recipient.org (Postfix) with ESMTPS id 3F8E; Wed, 21 Oct 2026 08:00:04 +0000
+Received: from relay.securityweek.org (relay.securityweek.org [23.92.24.5]) by mail-lf1-f52.google.com with ESMTPS id 9C2D; Wed, 21 Oct 2026 08:00:01 +0000
+Received: from list.securityweek.org (list.securityweek.org [45.33.32.156]) by relay.securityweek.org with ESMTP id 1B7A; Wed, 21 Oct 2026 07:59:58 +0000
+List-Id: Security Weekly <security-weekly.lists.securityweek.org>
+List-Unsubscribe: <mailto:unsubscribe@lists.securityweek.org>
+From: Security Weekly <news@newsletter.example.org>
+To: subscriber@recipient.org
+Subject: This week in security: supply chain attacks
+Date: Wed, 21 Oct 2026 07:59:55 +0000
+Message-ID: <weekly-2026-10-21@newsletter.example.org>
+DKIM-Signature: v=1; a=rsa-sha256; d=newsletter.example.org; s=weekly; h=from:to:subject:date; bh=YWJjZGVm; b=ZGVmZ2hp
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Security Weekly - 21 October 2026
+
+This week: supply chain compromises, phishing kit economics, and a review of
+recent BEC cases. Read the full issue at https://newsletter.example.org/2026-10-21.
+
+You are receiving this because you subscribed to Security Weekly.

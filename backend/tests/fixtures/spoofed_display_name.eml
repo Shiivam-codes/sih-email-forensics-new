@@ -1,0 +1,18 @@
+Return-Path: <microsoft.security.alert@gmail.com>
+Authentication-Results: mx.recipient.org; spf=pass smtp.mailfrom=gmail.com; dkim=pass header.d=gmail.com; dmarc=pass header.from=gmail.com
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com [209.85.220.41]) by mx.recipient.org (Postfix) with ESMTPS id 8D1F0; Tue, 20 Oct 2026 19:10:05 +0000
+From: "Microsoft Account Team" <microsoft.security.alert@gmail.com>
+Reply-To: Account Recovery <recover@microsoft-support-desk.net>
+To: employee@recipient.org
+Subject: Security alert: password reset required
+Date: Tue, 20 Oct 2026 19:10:01 +0000
+Message-ID: <CAF8f4b2c1d9e0f2@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+A password reset was requested for your Microsoft account.
+
+If this was not you, confirm your identity within 12 hours at
+https://microsoft-support-desk.net/recover?user=employee
+
+Microsoft Account Team

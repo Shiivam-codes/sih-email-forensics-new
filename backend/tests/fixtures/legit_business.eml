@@ -1,0 +1,20 @@
+Return-Path: <priya.menon@acme-corp.com>
+Authentication-Results: mx.recipient.org; spf=pass smtp.mailfrom=acme-corp.com; dkim=pass header.d=acme-corp.com; dmarc=pass header.from=acme-corp.com
+Received: from mx.acme-corp.com (mx.acme-corp.com [52.95.110.10]) by mail.recipient.org (Postfix) with ESMTPS id 7F3A1; Tue, 20 Oct 2026 10:15:30 +0530 (IST)
+Received: from smtp.acme-corp.com (smtp.acme-corp.com [13.107.42.14]) by mx.acme-corp.com (Postfix) with ESMTPS id 5C2B9; Tue, 20 Oct 2026 10:15:28 +0530 (IST)
+DKIM-Signature: v=1; a=rsa-sha256; d=acme-corp.com; s=selector1; h=from:to:subject:date; bh=YWJjZGVm; b=ZGVmZ2hp
+From: Priya Menon <priya.menon@acme-corp.com>
+To: Arjun Rao <arjun.rao@recipient.org>
+Cc: Finance Team <finance@recipient.org>
+Subject: Quarterly vendor review meeting
+Date: Tue, 20 Oct 2026 10:15:20 +0530
+Message-ID: <20261020044520.5C2B9@acme-corp.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+Hi Arjun,
+
+Sharing the agenda for Thursday's vendor review. No action is needed before then.
+
+Regards,
+Priya
