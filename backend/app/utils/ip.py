@@ -19,19 +19,30 @@ def normalize_ip(value: str | None) -> str | None:
     return str(addr)
 
 
-def is_public_ip(value: str | None) -> bool:
+def ip_scope(value: str | None) -> str:
     candidate = normalize_ip(value)
     if candidate is None:
-        return False
+        return "invalid"
     addr = ipaddress.ip_address(candidate)
-    return not (
-        addr.is_private
-        or addr.is_loopback
-        or addr.is_link_local
-        or addr.is_multicast
-        or addr.is_unspecified
-        or addr.is_reserved
-    )
+    if addr.is_unspecified:
+        return "unspecified"
+    if addr.is_loopback:
+        return "loopback"
+    if addr.is_link_local:
+        return "link_local"
+    if addr.is_multicast:
+        return "multicast"
+    if addr.is_private:
+        return "private"
+    if addr.is_reserved:
+        return "reserved"
+    if not addr.is_global:
+        return "non_public"
+    return "public"
+
+
+def is_public_ip(value: str | None) -> bool:
+    return ip_scope(value) == "public"
 
 
 def find_ips(text: str) -> list[str]:

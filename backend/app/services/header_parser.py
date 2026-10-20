@@ -214,6 +214,8 @@ def build_email_meta(parsed: ParsedEmail) -> EmailMeta:
         to=parse_address_list(message.get_all("To", [])),
         cc=parse_address_list(message.get_all("Cc", [])),
         message_id=str(message.get("Message-ID", "")).strip() or None,
+        list_id=str(message.get("List-Id", "")).strip() or None,
+        list_unsubscribe=bool(message.get("List-Unsubscribe")),
         headers_excerpt=_headers_excerpt(message),
         attachments=parsed.attachments,
         body_excerpt=parsed.body_text[:_MAX_EXCERPT],

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
 from app.core.config import Settings, get_settings
+from app.enrichers.service import EnrichmentService
 from app.services.store import AnalysisStore
 
 logging.basicConfig(
@@ -21,7 +22,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI):
         app.state.settings = resolved
         app.state.store = AnalysisStore(resolved.database_path)
+        app.state.enricher = EnrichmentService(resolved)
         yield
+        app.state.enricher.close()
 
     app = FastAPI(
         title=resolved.app_name,

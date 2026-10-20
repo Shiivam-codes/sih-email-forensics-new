@@ -110,6 +110,36 @@ Total raw data: approximately 367 MiB.
 - Text length ranges from 0 to 17,036,692 characters; filter empties and extreme outliers
   before training.
 
+## GeoIP databases
+
+Phase 2 uses the free DB-IP Lite databases, stored outside `data/raw/` in the gitignored
+`data/geoip/` directory.
+
+- Source: https://db-ip.com/db/download/ip-to-city-lite and
+  https://db-ip.com/db/download/ip-to-asn-lite
+- Release: **2026-10**
+- License: Creative Commons Attribution 4.0 (CC BY 4.0).
+- Required attribution: **IP Geolocation by DB-IP (https://db-ip.com)**.
+
+| File | Size | SHA-256 |
+|---|---|---|
+| `data/geoip/dbip-city-lite-2026-10.mmdb` | 121 MiB | `9e250f02722d1ad1780f88192f0e908af285478a33e76b88b349c9181ae9d0f5` |
+| `data/geoip/dbip-asn-lite-2026-10.mmdb` | 9.1 MiB | `4384bfcfb594391bc4e0ab37751f44661eaf7cadbeee28a90a6b82dc935fec4c` |
+
+`data/geoip/dbip-city-lite.mmdb` and `data/geoip/dbip-asn-lite.mmdb` are symlinks to the
+versioned files so configuration does not change on each monthly refresh.
+
+Reproduce the download:
+
+```bash
+make geoip
+# or pin a release explicitly
+DBIP_VERSION=2026-10 ./scripts/fetch_geoip.sh
+```
+
+DB-IP Lite is approximate. City coordinates may represent an ISP or regional centroid, not
+the sender's physical location. Treat geolocation as investigative context, not proof.
+
 ## Recommended use
 
 | Task | Use | Avoid |
@@ -163,4 +193,5 @@ each generated file. All 93 files parse successfully with the Phase 1 analyzer.
 - `meajor.csv` is covered by the MeAJOR 2.0 release.
 - No public raw-header BEC corpus was found. BEC header tests currently rely on controlled
   synthetic `.eml` samples and repository fixtures.
-- GeoIP and ASN databases are part of Phase 2 and are not in `data/raw/` yet.
+- GeoIP and ASN databases live in the gitignored `data/geoip/` directory, not `data/raw/`.
+- Warm caches are local artifacts in `data/cache/`; they are not committed and may expire.

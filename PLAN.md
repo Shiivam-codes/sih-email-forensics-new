@@ -599,7 +599,7 @@ Exit gate:
 - With the network disabled, the pipeline still completes and marks sources unavailable.
 - Cache hit/miss and budget behavior are tested.
 
-### Phase 3 — Scoring and evaluation harness (1 day)
+### Phase 3 — Scoring and evaluation harness (1 day) — complete
 
 Deliverables:
 - `scorer.py` with granular signal scoring, two-family rule, confidence calculation, top reasons.
@@ -902,8 +902,8 @@ Defaults if unanswered: 7-day plan, offline-first, no keys, fixtures-first, bala
   fixtures, tests, dev scripts
 - [ ] Phase 0b — Datasets, GeoIP database, Ollama model, `make doctor`
 - [x] Phase 1 — Parse, IOC, auth, origin, batch API, React case queue + detail view
-- [ ] Phase 2 — Enrichment, cache, budget, offline mode
-- [ ] Phase 3 — Scorer, thresholds, evaluation harness
+- [x] Phase 2 — Enrichment, cache, budget, offline mode
+- [x] Phase 3 — Scorer, thresholds, evaluation harness
 - [ ] Phase 4 — LLM classifier + TF-IDF fallback (**MVP checkpoint**)
 - [ ] Phase 5 — Graph, campaign clustering, case management
 - [ ] Phase 6 — Full React UI, Leaflet trace map, PDF report

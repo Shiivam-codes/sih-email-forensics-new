@@ -40,6 +40,119 @@ function alignmentLabel(value) {
   return "unknown";
 }
 
+function formatAge(days) {
+  if (days === null || days === undefined) return "—";
+  if (days < 1) return "today";
+  if (days < 30) return `${days}d`;
+  if (days < 365) return `${Math.round(days / 30)}mo`;
+  const years = (days / 365).toFixed(1);
+  return `${years}y`;
+}
+
+function formatLocation(intel) {
+  if (!intel || intel.scope !== "public") {
+    return `${intel?.scope || "unknown"} · lookup skipped`;
+  }
+  return [intel.city, intel.region, intel.country].filter(Boolean).join(", ") || "—";
+}
+
+const SIGNAL_LABELS = {
+  auth: "Authentication",
+  domain: "Domain",
+  ip: "IP reputation",
+  content: "Content",
+  header: "Header",
+};
+
+function scoreLabel(value) {
+  return (value || "unscored").replaceAll("_", " ");
+}
+
+function scoreTone(value) {
+  if (value === "malicious") return "is-fail";
+  if (value === "suspicious") return "is-partial";
+  if (value === "likely_legitimate") return "is-pass";
+  return "is-neutral";
+}
+
+const SOURCE_LABELS = {
+  geoip: "GeoIP",
+  internetdb: "InternetDB",
+  tor_exit_list: "Tor exits",
+  dns: "DNS",
+  rdap: "RDAP",
+  lookalike: "Lookalike",
+  url_passive: "URL heuristics",
+};
+
+function sourceTone(status) {
+  if (status === "ok" || status === "complete") return "is-pass";
+  if (status === "partial") return "is-partial";
+  if (["unavailable", "budget_exceeded"].includes(status)) return "is-fail";
+  return "is-neutral";
+}
+
+function IpFlags({ intel }) {
+  const flags = [
+    intel.tor && ["Tor exit", "is-risk"],
+    intel.hosting && ["Hosting", "is-watch"],
+    intel.vpn && ["VPN", "is-watch"],
+    intel.cloud && ["Cloud", "is-info"],
+  ].filter(Boolean);
+  if (flags.length === 0) return <span className="muted small">—</span>;
+  return (
+    <span className="flag-list">
+      {flags.map(([label, tone]) => (
+        <span className={`flag-tag ${tone}`} key={label}>
+          {label}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function DnsFlags({ intel }) {
+  const flags = [
+    intel.spf && ["SPF", "is-pass"],
+    !intel.spf && intel.sources.includes("dns") && ["No SPF", "is-watch"],
+    intel.dmarc && ["DMARC", "is-pass"],
+    !intel.dmarc && intel.sources.includes("dns") && ["No DMARC", "is-watch"],
+    intel.lookalike_of && [`Lookalike · ${intel.lookalike_of}`, "is-risk"],
+  ].filter(Boolean);
+  if (flags.length === 0) return <span className="muted small">—</span>;
+  return (
+    <span className="flag-list">
+      {flags.map(([label, tone]) => (
+        <span className={`flag-tag ${tone}`} key={label}>
+          {label}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function UrlFlags({ intel }) {
+  const flags = [
+    intel.ip_literal && ["IP literal", "is-risk"],
+    intel.punycode && ["Punycode", "is-watch"],
+    intel.userinfo && ["Userinfo", "is-risk"],
+    intel.shortened && ["Shortener", "is-watch"],
+    intel.suspicious_tld && ["High-risk TLD", "is-watch"],
+    intel.lookalike_of && [`Lookalike · ${intel.lookalike_of}`, "is-risk"],
+    !intel.https && ["No HTTPS", "is-watch"],
+  ].filter(Boolean);
+  if (flags.length === 0) return <span className="muted small">—</span>;
+  return (
+    <span className="flag-list">
+      {flags.map(([label, tone]) => (
+        <span className={`flag-tag ${tone}`} key={label}>
+          {label}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function Stat({ label, value, hint, tone }) {
   return (
     <div className={`stat-card ${tone || ""}`}>
@@ -68,7 +181,18 @@ function Section({ eyebrow, title, children, actions }) {
 export default function AnalysisDetail({ analysis, onBack }) {
   if (!analysis) return null;
 
-  const { email, auth, routing, evidence, iocs, warnings } = analysis;
+  const { email, auth, routing, evidence, enrichment, score, iocs, warnings } = analysis;
+  const ipRows = Object.values(enrichment?.ip || {});
+  const domainRows = Object.values(enrichment?.domain || {});
+  const urlRows = Object.values(enrichment?.url || {});
+  const sourceRows = Object.values(enrichment?.sources || {});
+  const originIntel = enrichment?.ip?.[routing.origin_ip];
+  const originHint =
+    originIntel?.scope === "public" && (originIntel.city || originIntel.country)
+      ? `${[originIntel.city, originIntel.country].filter(Boolean).join(", ")} · ${
+          Math.round(routing.origin_confidence * 100)
+        }% confidence`
+      : `${Math.round(routing.origin_confidence * 100)}% confidence · ${routing.origin_method}`;
   const authRows = [
     { mechanism: "SPF", ...auth.spf },
     ...auth.dkim.map((row, index) => ({
@@ -93,11 +217,18 @@ export default function AnalysisDetail({ analysis, onBack }) {
           </p>
         </div>
         <div className="detail-header-badges">
+          <Badge
+            value={score?.label}
+            label={`Risk: ${scoreLabel(score?.label)}`}
+          />
           <Badge value={auth.verdict} label={`Auth: ${auth.verdict}`} />
           <Badge
             value={routing.origin_ip ? "partial" : "unknown"}
             label={routing.origin_ip ? "Origin located" : "Origin undetermined"}
           />
+          {enrichment?.offline_mode && (
+            <Badge value="offline" label="Offline enrichment" tone="is-neutral" />
+          )}
         </div>
       </header>
 
@@ -111,7 +242,7 @@ export default function AnalysisDetail({ analysis, onBack }) {
         <Stat
           label="Probable origin"
           value={routing.origin_ip || "undetermined"}
-          hint={`${Math.round(routing.origin_confidence * 100)}% confidence · ${routing.origin_method}`}
+          hint={originHint}
         />
         <Stat
           label="Relay hops"
@@ -130,6 +261,83 @@ export default function AnalysisDetail({ analysis, onBack }) {
           <strong>Analysis warnings:</strong> {warnings.join(" · ")}
         </div>
       )}
+
+      <Section
+        eyebrow="Risk"
+        title="Weighted threat assessment"
+        actions={
+          <Badge
+            value={score?.label}
+            label={`${score?.total ?? 0}/100 · ${scoreLabel(score?.label)}`}
+          />
+        }
+      >
+        {!score?.available ? (
+          <p className="empty-state">
+            {score?.notes?.[0] || "Scoring evidence is not available for this analysis."}
+          </p>
+        ) : (
+          <>
+            <div className="score-layout">
+              <div className={`score-hero ${scoreTone(score.label)}`}>
+                <span className="stat-label">Composite risk</span>
+                <strong className="score-total">
+                  {score.total}
+                  <span>/100</span>
+                </strong>
+                <strong className="score-verdict">{scoreLabel(score.label)}</strong>
+                <span className="muted small">
+                  {Math.round(score.confidence * 100)}% confidence ·{" "}
+                  {score.families_above_threshold} signal families ·{" "}
+                  {Math.round(score.coverage * 100)}% coverage
+                </span>
+              </div>
+              <div className="score-families">
+                {Object.entries(score.signals).map(([family, points]) => {
+                  const maximum = score.max_signals[family] || 0;
+                  const percent = maximum ? Math.min(100, (points / maximum) * 100) : 0;
+                  return (
+                    <div className="score-row" key={family}>
+                      <span className="score-row-label">
+                        {SIGNAL_LABELS[family] || family}
+                      </span>
+                      <span className="score-bar">
+                        <span
+                          className={`score-fill ${
+                            percent >= 70 ? "is-fail" : percent >= 30 ? "is-partial" : "is-pass"
+                          }`}
+                          style={{ width: `${percent}%` }}
+                        />
+                      </span>
+                      <span className="numeric small">
+                        {points}/{maximum}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {score.top_reasons.length > 0 && (
+              <div className="score-reasons">
+                <h3>Top reasons</h3>
+                <ul className="note-list">
+                  {score.top_reasons.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {score.notes?.length > 0 && (
+              <ul className="note-list">
+                {score.notes.map((note) => (
+                  <li key={note}>{note}</li>
+                ))}
+              </ul>
+            )}
+            <p className="muted tiny">Scoring version: {score.version}</p>
+          </>
+        )}
+      </Section>
 
       <Section eyebrow="Identity" title="Sender and message metadata">
         <div className="kv-grid">
@@ -292,6 +500,169 @@ export default function AnalysisDetail({ analysis, onBack }) {
               </tbody>
             </table>
           </div>
+        )}
+      </Section>
+
+      <Section
+        eyebrow="Enrichment"
+        title="External context and provenance"
+        actions={
+          <div className="section-actions">
+            <span className="muted small">
+              {enrichment?.cache_hits ?? 0} cache hits · {enrichment?.cache_misses ?? 0} misses
+            </span>
+            <Badge
+              value={enrichment?.status || "not_queried"}
+              label={(enrichment?.status || "not queried").replaceAll("_", " ")}
+              tone={
+                enrichment?.offline_mode
+                  ? "is-neutral"
+                  : sourceTone(enrichment?.status || "not_queried")
+              }
+            />
+          </div>
+        }
+      >
+        {sourceRows.length > 0 && (
+          <div className="source-grid">
+            {sourceRows.map((source) => (
+              <div className="source-card" key={source.source}>
+                <span className="source-name">
+                  {SOURCE_LABELS[source.source] || source.source}
+                </span>
+                <Badge
+                  value={source.status}
+                  label={source.status.replaceAll("_", " ")}
+                  tone={sourceTone(source.status)}
+                />
+                {source.detail && <span className="muted tiny">{source.detail}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {ipRows.length > 0 && (
+          <div className="enrichment-block">
+            <h3>IP intelligence</h3>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Address</th>
+                    <th>Location</th>
+                    <th>ASN / network</th>
+                    <th>Flags</th>
+                    <th className="numeric">Ports</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ipRows.map((row) => (
+                    <tr key={row.ip} className={row.ip === routing.origin_ip ? "origin-row" : ""}>
+                      <td className="mono small">
+                        {row.ip}
+                        {row.ip === routing.origin_ip && (
+                          <span className="inline-tag">origin</span>
+                        )}
+                      </td>
+                      <td className="small">{formatLocation(row)}</td>
+                      <td className="small">
+                        <span className="stacked">
+                          <span>{row.asn ? `AS${row.asn}` : "—"}</span>
+                          {row.as_org && <span className="muted tiny">{row.as_org}</span>}
+                        </span>
+                      </td>
+                      <td>
+                        <IpFlags intel={row} />
+                      </td>
+                      <td className="numeric small">
+                        {row.ports.length > 0 ? row.ports.join(", ") : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {domainRows.length > 0 && (
+          <div className="enrichment-block">
+            <h3>Domain intelligence</h3>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Domain</th>
+                    <th>Age</th>
+                    <th>Registrar</th>
+                    <th>MX</th>
+                    <th>Signals</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {domainRows.map((row) => (
+                    <tr key={row.domain}>
+                      <td className="mono small break-all">{row.domain}</td>
+                      <td className="small" title={row.created_at || "registration date unavailable"}>
+                        {formatAge(row.age_days)}
+                      </td>
+                      <td className="small">{row.registrar || "—"}</td>
+                      <td className="small break-all">
+                        {row.mx.length > 0 ? row.mx.join(", ") : "—"}
+                      </td>
+                      <td>
+                        <DnsFlags intel={row} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {urlRows.length > 0 && (
+          <div className="enrichment-block">
+            <h3>URL intelligence</h3>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>URL</th>
+                    <th>Host</th>
+                    <th>Flags</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {urlRows.map((row) => (
+                    <tr key={row.url}>
+                      <td className="mono small break-all">{row.url}</td>
+                      <td className="mono small break-all">{row.host || "—"}</td>
+                      <td>
+                        <UrlFlags intel={row} />
+                      </td>
+                      <td className="small muted">
+                        {row.notes.length > 0 ? row.notes[0] : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {ipRows.length + domainRows.length + urlRows.length === 0 && (
+          <p className="empty-state">No enrichment candidates were found in this message.</p>
+        )}
+
+        {enrichment?.notes?.length > 0 && (
+          <ul className="note-list">
+            {enrichment.notes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
         )}
       </Section>
 

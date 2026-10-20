@@ -19,6 +19,13 @@ def health(request: Request) -> dict[str, object]:
         "version": settings.version,
         "environment": settings.environment,
         "analyses": store.count(),
+        "enrichment": request.app.state.enricher.health(),
+        "scoring": {
+            "enabled": settings.scoring_enabled,
+            "version": settings.scoring_version,
+            "malicious_threshold": settings.malicious_threshold,
+            "suspicious_threshold": settings.suspicious_threshold,
+        },
     }
 
 
@@ -45,7 +52,14 @@ async def create_analysis(
         filename = upload.filename or "email.eml"
         try:
             data = await upload.read(settings.max_upload_bytes + 1)
-            result = analyze_email(data, filename, settings.max_upload_bytes)
+            enricher = request.app.state.enricher if settings.enrichment_enabled else None
+            result = analyze_email(
+                data,
+                filename,
+                settings.max_upload_bytes,
+                enricher=enricher,
+                settings=settings,
+            )
             store.save(result)
             results.append(result)
         except IngestError as exc:

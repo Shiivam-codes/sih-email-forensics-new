@@ -7,7 +7,16 @@ from app.main import create_app
 
 @pytest.fixture
 def client(tmp_path):
-    settings = Settings(database_path=str(tmp_path / "test.db"))
+    settings = Settings(
+        database_path=str(tmp_path / "test.db"),
+        cache_path=str(tmp_path / "cache"),
+        geoip_city_path=str(tmp_path / "missing-city.mmdb"),
+        geoip_asn_path=str(tmp_path / "missing-asn.mmdb"),
+        offline_mode=True,
+        internetdb_enabled=False,
+        tor_exit_list_enabled=False,
+        rdap_enabled=False,
+    )
     app = create_app(settings)
     with TestClient(app) as test_client:
         yield test_client
@@ -20,6 +29,8 @@ def test_health(client):
     payload = response.json()
     assert payload["status"] == "ok"
     assert payload["analyses"] == 0
+    assert payload["enrichment"]["offline_mode"] is True
+    assert payload["enrichment"]["geoip_ready"] is False
 
 
 def test_upload_list_and_detail(client, load_fixture):
@@ -47,11 +58,21 @@ def test_upload_list_and_detail(client, load_fixture):
     assert result["auth"]["verdict"] == "fail"
     assert result["routing"]["origin_ip"] == "185.220.101.45"
     assert len(result["evidence"]["sha256"]) == 64
+    assert result["evidence"]["offline_mode"] is True
+    assert result["enrichment"]["offline_mode"] is True
+    assert result["enrichment"]["ip"]["185.220.101.45"]["scope"] == "public"
+    assert result["enrichment"]["domain"]["micros0ft-verify.com"]["lookalike_of"] == "microsoft.com"
+    assert result["enrichment"]["sources"]["dns"]["status"] == "offline"
+    assert result["score"]["available"] is True
+    assert result["score"]["label"] == "suspicious"
+    assert result["score"]["signals"]["auth"] == 21
 
     listing = client.get("/api/analyses")
     assert listing.status_code == 200
     assert len(listing.json()) == 1
     assert listing.json()[0]["id"] == result["id"]
+    assert listing.json()[0]["label"] == "suspicious"
+    assert listing.json()[0]["score"] == result["score"]["total"]
 
     detail = client.get(f"/api/analyses/{result['id']}")
     assert detail.status_code == 200

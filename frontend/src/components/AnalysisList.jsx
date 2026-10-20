@@ -41,6 +41,7 @@ export default function AnalysisList({ analyses, loading, onSelect, onRefresh })
                 <th>Sender</th>
                 <th>Subject</th>
                 <th>Auth</th>
+                <th>Risk</th>
                 <th className="numeric">Hops</th>
                 <th className="numeric">IOCs</th>
                 <th>Origin</th>
@@ -63,6 +64,16 @@ export default function AnalysisList({ analyses, loading, onSelect, onRefresh })
                   <td className="subject-cell">{analysis.subject || "—"}</td>
                   <td>
                     <Badge value={analysis.verdict} />
+                  </td>
+                  <td>
+                    {analysis.label ? (
+                      <Badge
+                        value={analysis.label}
+                        label={`${analysis.score ?? "—"} · ${analysis.label.replaceAll("_", " ")}`}
+                      />
+                    ) : (
+                      <span className="muted small">—</span>
+                    )}
                   </td>
                   <td className="numeric">{analysis.hop_count}</td>
                   <td className="numeric">{analysis.ioc_count}</td>

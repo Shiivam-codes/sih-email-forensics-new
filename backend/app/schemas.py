@@ -71,6 +71,90 @@ class IOC(BaseModel):
     context: str = ""
 
 
+class SourceStatus(BaseModel):
+    source: str
+    status: str = "not_queried"
+    detail: str | None = None
+
+
+class IpIntel(BaseModel):
+    ip: str
+    scope: str = "public"
+    country: str | None = None
+    country_code: str | None = None
+    city: str | None = None
+    region: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    timezone: str | None = None
+    asn: int | None = None
+    isp: str | None = None
+    as_org: str | None = None
+    hosting: bool | None = None
+    vpn: bool | None = None
+    tor: bool | None = None
+    cloud: bool | None = None
+    abuse_score: int | None = None
+    tags: list[str] = Field(default_factory=list)
+    ports: list[int] = Field(default_factory=list)
+    vulns: list[str] = Field(default_factory=list)
+    available: bool = False
+    sources: list[str] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
+
+
+class DomainIntel(BaseModel):
+    domain: str
+    available: bool = False
+    age_days: int | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+    expires_at: str | None = None
+    registrar: str | None = None
+    statuses: list[str] = Field(default_factory=list)
+    resolved: bool | None = None
+    a_records: list[str] = Field(default_factory=list)
+    mx: list[str] = Field(default_factory=list)
+    ns: list[str] = Field(default_factory=list)
+    spf: str | None = None
+    dmarc: str | None = None
+    lookalike_of: str | None = None
+    distance: int | None = None
+    sources: list[str] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
+
+
+class UrlIntel(BaseModel):
+    url: str
+    host: str | None = None
+    scheme: str | None = None
+    https: bool = False
+    ip_literal: bool = False
+    punycode: bool = False
+    userinfo: bool = False
+    shortened: bool = False
+    suspicious_tld: bool = False
+    lookalike_of: str | None = None
+    distance: int | None = None
+    suspicious: bool = False
+    reputation: str = "not_checked"
+    available: bool = True
+    sources: list[str] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
+
+
+class EnrichmentReport(BaseModel):
+    offline_mode: bool = False
+    status: str = "not_queried"
+    ip: dict[str, IpIntel] = Field(default_factory=dict)
+    domain: dict[str, DomainIntel] = Field(default_factory=dict)
+    url: dict[str, UrlIntel] = Field(default_factory=dict)
+    sources: dict[str, SourceStatus] = Field(default_factory=dict)
+    cache_hits: int = 0
+    cache_misses: int = 0
+    notes: list[str] = Field(default_factory=list)
+
+
 class EmailMeta(BaseModel):
     subject: str = ""
     date: str | None = None
@@ -80,11 +164,27 @@ class EmailMeta(BaseModel):
     to: list[EmailAddress] = Field(default_factory=list)
     cc: list[EmailAddress] = Field(default_factory=list)
     message_id: str | None = None
+    list_id: str | None = None
+    list_unsubscribe: bool = False
     headers_excerpt: str = ""
     attachments: list[AttachmentInfo] = Field(default_factory=list)
     body_excerpt: str = ""
     body_length: int = 0
     html_present: bool = False
+
+
+class ScoreReport(BaseModel):
+    available: bool = False
+    total: int = 0
+    label: str = "unscored"
+    confidence: float = 0.0
+    signals: dict[str, int] = Field(default_factory=dict)
+    max_signals: dict[str, int] = Field(default_factory=dict)
+    families_above_threshold: int = 0
+    coverage: float = 0.0
+    top_reasons: list[str] = Field(default_factory=list)
+    version: str = "phase3-rules-v1"
+    notes: list[str] = Field(default_factory=list)
 
 
 class AnalysisEvidence(BaseModel):
@@ -93,6 +193,7 @@ class AnalysisEvidence(BaseModel):
     size_bytes: int
     analyzed_at: datetime
     tool_version: str = "0.1.0"
+    offline_mode: bool = False
 
 
 class AnalysisResult(BaseModel):
@@ -101,6 +202,8 @@ class AnalysisResult(BaseModel):
     email: EmailMeta
     auth: AuthReport
     routing: RoutingReport
+    enrichment: EnrichmentReport = Field(default_factory=EnrichmentReport)
+    score: ScoreReport = Field(default_factory=ScoreReport)
     iocs: list[IOC] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
 

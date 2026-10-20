@@ -82,6 +82,8 @@ class AnalysisStore:
                     subject=result.email.subject,
                     sender=result.email.sender.address,
                     origin_ip=result.routing.origin_ip,
+                    score=result.score.total if result.score.available else None,
+                    label=result.score.label if result.score.available else None,
                 )
             )
         return summaries

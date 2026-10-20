@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: setup backend-install frontend-install backend frontend dev test lint format build clean data sample-data
+.PHONY: setup backend-install frontend-install backend frontend dev test lint format build clean data geoip sample-data warm-cache eval eval-corpus
 
 setup: backend-install frontend-install
 
@@ -26,7 +26,7 @@ test:
 	cd backend && ../$(PY) -m pytest
 
 lint:
-	$(PY) -m ruff check backend/app backend/tests
+	$(PY) -m ruff check backend/app backend/tests scripts evaluation
 	cd frontend && npm run build
 
 format:
@@ -38,8 +38,20 @@ build:
 data:
 	./scripts/fetch_datasets.sh
 
+geoip:
+	./scripts/fetch_geoip.sh
+
 sample-data:
 	$(PY) scripts/sample_corpus.py
+
+warm-cache:
+	PYTHONPATH=backend $(PY) scripts/warm_cache.py
+
+eval:
+	PYTHONPATH=backend $(PY) evaluation/run_eval.py
+
+eval-corpus:
+	PYTHONPATH=backend $(PY) evaluation/run_eval.py --include-corpus
 
 clean:
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +

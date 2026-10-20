@@ -14,6 +14,7 @@ data/analyses.db
 data/analyses.db-*
 data/cache/
 data/raw/
+data/geoip/
 data/fixtures/generated/
 reports/
 models/*.joblib

@@ -4,6 +4,10 @@ const TONES = {
   fail: "is-fail",
   unknown: "is-unknown",
   neutral: "is-neutral",
+  malicious: "is-fail",
+  suspicious: "is-partial",
+  likely_legitimate: "is-pass",
+  unscored: "is-neutral",
 };
 
 export default function Badge({ value, label, tone }) {
